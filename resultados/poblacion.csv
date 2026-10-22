@@ -1,0 +1,6 @@
+paso,reclamos,exclusion,sesgo
+Ventana 2017–2019,395643,Ninguno,Años prepandemia
+Sin copias,395629,14 copias,Se supone duplicación de publicación
+Finalizados,378137,17492 abiertos/anulados,Condiciona al cierre registrado
+Demora válida,378136,1 negativas/ausentes,Resultado desconocido de los excluidos
+Población final,378136,0 ubicaciones inválidas,Geolocalizables; rectángulo no es límite oficial

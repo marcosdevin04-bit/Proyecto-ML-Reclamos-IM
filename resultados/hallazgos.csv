@@ -1,0 +1,7 @@
+defecto,evidencia,decision
+Copias exactas,14,Eliminar antes de particionar
+No finalizados,17492,Excluir: fecha actual no es cierre observable
+Demoras imposibles/ausentes,1,Excluir antes de etiquetar
+Coordenadas,CSV LATITUD/LONGITUD; metadatos COORD_X/Y UTM,Usar grados y proyectar localmente
+Estados por año,Tabla estados_por_anio,Declarar sesgo de selección por cierre
+Precisión de fechas,{0: 378136},"Usar calendario diario, no hora"

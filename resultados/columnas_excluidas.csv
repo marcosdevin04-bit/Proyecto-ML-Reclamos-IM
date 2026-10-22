@@ -1,0 +1,7 @@
+columna,razon,motivo
+NUMERO_RECLAMO,"Identificador, no describe el problema",Identificación
+CODIGO_ESTADO / DESC_ESTADO,Estado actual; define población,Disponibilidad
+FECHA_DESDE_EN_ESTADO,Fecha posterior; construye la respuesta,Disponibilidad
+FECHA_INGRESO_RECLAMO,Se transforma a calendario,Representación
+DESC_AREA / DESC_GRUPO / DESC_TIPOPROBLEMA,"Se usan códigos categóricos, no duplicar nombres",Redundancia
+dias / resuelto_7d / anio,"Respuesta y partición, no entradas",Respuesta/partición
