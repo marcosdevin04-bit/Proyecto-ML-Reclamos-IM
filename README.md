@@ -43,9 +43,52 @@ El entregable será un notebook basado en el template de la cátedra, con las oc
 
 **Fecha indicada en la consigna:** jueves 5 de noviembre de 2026. Trabajo en grupos de cuatro; 10 % de la calificación final.
 
-## Estado
+## Archivos principales
 
-Proyecto en etapa inicial. El repositorio se actualizará con la consigna, el template, el análisis y los resultados a medida que se completen las etapas.
+- [Notebook ejecutado](entrega_reclamos_im.ipynb): código, gráficos, resultados e interpretaciones de las ocho secciones.
+- [Guía de defensa en PDF](GUIA_DEFENSA.pdf): explicaciones, decisiones, resultados reales y preguntas para practicar.
+- [Guía en Markdown](GUIA_DEFENSA.md): versión editable de la misma guía.
+- [Consigna](entrega_reclamos_im.pdf) y [template original](entrega_reclamos_im_template.ipynb).
+- `data/`: ZIP oficial versionado, descripción de campos y manifiesto con fecha y hashes.
+- `resultados/`: tablas CSV y resumen JSON de la ejecución.
+- `requirements.txt` y `ejecutar_notebook.py`: entorno y ejecución desde un kernel nuevo.
+- `scripts/`: construcción del notebook, anotación de resultados y generación de la guía.
+
+## Reproducir
+
+Requiere Python 3.12. Desde la raíz del repositorio:
+
+```bash
+python -m venv .venv
+```
+
+En Windows (PowerShell):
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -X utf8 ejecutar_notebook.py
+```
+
+En macOS/Linux:
+
+```bash
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python ejecutar_notebook.py
+```
+
+El notebook extrae el CSV del ZIP si falta y verifica el hash de la fuente. La ejecución verificada tardó unos cinco minutos en el equipo de trabajo; puede variar. La fecha de descarga es el 22 de octubre de 2026. No hace falta volver a descargar el recurso, que se actualiza periódicamente.
+
+Para regenerar la guía, instalar `requirements-documentacion.txt` en el mismo entorno y ejecutar `python scripts/crear_guia.py`. El constructor del notebook reinicia sus salidas: no hace falta usarlo para leer o ejecutar la entrega. Las anotaciones numéricas se generan después de ejecutar con `python scripts/anotar_resultados.py`.
+
+## Estado y lectura de resultados
+
+Notebook completo y ejecutado con las ocho secciones, seis familias y prueba reservada de 2019. Los resultados incluyen casos en que la alternativa más compleja no mejora a la base.
+
+En 2019, el bosque elegido en desarrollo obtiene AUC 0,760 y AP 0,703, frente a AUC 0,746 y AP 0,706 de la logística sin ubicación. Hay mejora de AUC, pero no de AP: no se demuestra superioridad uniforme ni se justifica un reemplazo automático del modelo simple. La validación mezclada del bosque da AUC 0,880, frente a 0,760 en el año posterior.
+
+Se proponen cuatro focos compactos de baches bajo criterios explícitos de soporte y radio. El grupo extenso de DBSCAN no se recomienda como si fuera un foco compacto; su silhouette negativo y el ruido se discuten en el notebook.
+
+La respuesta observable es cierre administrativo en siete días, condicionado a reclamos finalizados con fechas válidas. Finalizado no garantiza reparación física; abiertos/anulados y disponibilidad histórica de etiquetas limitan lo que se puede generalizar.
 
 ## Alcance
 
