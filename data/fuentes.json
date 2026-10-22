@@ -1,0 +1,13 @@
+{
+  "reclamos.zip": {
+    "url": "https://ckan-data.montevideo.gub.uy/dataset/c34e11ea-c547-46d5-80c6-d0bf283c002f/resource/ccb644b1-79b0-4caa-a353-6cfa816f3f70/download/reclamos.zip",
+    "bytes": 44014427,
+    "sha256": "de2884f2124247c94d6aa118d0c1a98f690d39597be1fa8cffcbcb025ce1fa67"
+  },
+  "metadata.txt": {
+    "url": "https://ckan-data.montevideo.gub.uy/dataset/c34e11ea-c547-46d5-80c6-d0bf283c002f/resource/39172145-d4c3-452a-98e9-8f74b6e7fc33/download/metadata.txt",
+    "bytes": 2357,
+    "sha256": "54c318e14de0e6fa7d509ae4b8ebaf0b281e3332fb6e422db54b563f579452b4"
+  },
+  "fecha_descarga": "2026-10-22T12:15:38.015579-03:00"
+}
