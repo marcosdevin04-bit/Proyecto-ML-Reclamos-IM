@@ -250,19 +250,23 @@ for grupo in sorted(set(lab)-{-1}):
     f.append({'foco':int(grupo),'longitud':float(T.LONGITUD.to_numpy()[idx].mean()),'latitud':float(T.LATITUD.to_numpy()[idx].mean()),
       'reclamos':int(idx.sum()),'radio_p90_m':float(np.quantile(np.linalg.norm(P[idx]-centro,axis=1),.9)),
       'criterio':f'Densidad: eps {EPS:.0f} m, min_samples {MIN_VECINOS}'})
-focos=pd.DataFrame(f).sort_values('reclamos',ascending=False) if f else pd.DataFrame(columns=['foco','reclamos'])
-guardar('focos_recomendados',focos.head(5))
-RES['focos']={'tipo':'Bache (401)','reclamos':len(T),'K':K_FOCOS,'eps':EPS,'min_samples':MIN_VECINOS,'comparacion':filas,'recomendados':focos.head(5).to_dict('records')}
+focos=pd.DataFrame(f).sort_values('reclamos',ascending=False) if f else pd.DataFrame(columns=['foco','reclamos','radio_p90_m'])
+guardar('grupos_dbscan',focos)
+# No recomendar como intervención conjunta el gran grupo que encadena la ciudad.
+# Criterio operativo propuesto para revisión: soporte >=30 y radio p90 <=2,5 km.
+recomendados=focos[(focos.reclamos>=30)&(focos.radio_p90_m<=2500)].head(5)
+guardar('focos_recomendados',recomendados)
+RES['focos']={'tipo':'Bache (401)','reclamos':len(T),'K':K_FOCOS,'eps':EPS,'min_samples':MIN_VECINOS,'comparacion':filas,'recomendados':recomendados.to_dict('records')}
 mostrar(f'K con mayor silhouette observado: {K_FOCOS}. DBSCAN identifica {len(focos)} grupos. Ruido excluido de silhouette y reportado como sin grupo: no se considera una sola agrupación de puntos dispersos. Si hay menos de dos grupos, silhouette no está definido.')
 ''')
 md(14, r'''
-**Elección:** baches (tipo 401), problema localizado y con más de 2.000 ingresos de desarrollo. Se incluyen estados no finales para medir concentración de reportes, no solo de cierres. La tabla da las ubicaciones aproximadas de los cinco focos densos con más soporte y su radio p90.
+**Elección:** baches (tipo 401), problema localizado y con más de 2.000 ingresos de desarrollo. Se incluyen estados no finales para medir concentración de reportes, no solo de cierres. La tabla da las ubicaciones aproximadas de hasta cinco focos compactos con más soporte y su radio p90.
 
 **K-medias:** se elige K por la curva completa; un máximo en la grilla no prueba un número natural de barrios, especialmente si la curva es plana o cae desde K=2. Se conserva ese K en Ward y enlace simple para comparar enlaces. Ward favorece compacidad; simple puede encadenar puntos por puentes.
 
 **DBSCAN:** se comparan k-distancias de 5, 10 y 20 vecinos, se fija 10 como soporte intermedio y se calcula una rodilla antes de agrupar. La regla de máxima separación de recta usa el 99% central para no elegir por un único extremo. Es una aproximación discutible, no un radio municipal oficial. Se informa cobertura junto con silhouette: excluir mucho ruido puede mejorar esa métrica sin representar toda la ciudad.
 
-K-medias reparte todos los puntos en zonas; DBSCAN busca densidad y puede dejar ruido. El mejor silhouette no elige automáticamente la mejor intervención. Recomendamos revisar los focos densos listados con personal municipal. Sus centros son coordenadas aproximadas, no barrios identificados por nombre. Los reportes pueden ser reiteraciones: no cuentan baches físicos únicos ni incidencia por población.
+K-medias reparte todos los puntos en zonas; DBSCAN busca densidad y puede dejar ruido, pero también puede encadenar gran parte de la ciudad en un grupo. El mejor silhouette no elige automáticamente la mejor intervención. Para recomendar focos se exige al menos 30 reportes y radio p90 de hasta 2,5 km: criterio operativo propuesto, no norma oficial ni parámetro ajustado sobre 2019. Se excluyen grupos demasiado extensos de la recomendación y se muestran todos en la tabla. Sus centros son coordenadas aproximadas, no barrios identificados por nombre. Los reportes pueden ser reiteraciones: no cuentan baches físicos únicos ni incidencia por población.
 ''')
 
 code(16, r'''

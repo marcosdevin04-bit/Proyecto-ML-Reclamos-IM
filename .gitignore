@@ -7,3 +7,4 @@ __pycache__/
 qa/
 tmp/
 data/*.csv
+data/*.part
