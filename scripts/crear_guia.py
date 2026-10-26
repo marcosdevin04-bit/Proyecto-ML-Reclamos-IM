@@ -25,9 +25,11 @@ Esta guía acompaña al notebook ejecutado. Explica qué se hizo, por qué y qu�
 
 **`ColumnTransformer`** reparte columnas: códigos de problema van a one-hot; calendario a escalado; ubicación a proyección y escalado espacial. One-hot convierte categorías en columnas 0/1, sin suponer que un código 400 sea el doble de 200.
 
-**`Coordenadas`** convierte latitud/longitud a metros locales y, si corresponde, divide ambos ejes por el mismo factor aprendido del entrenamiento. No deforma la geometría usando un desvío diferente para cada eje.
+**`proyectar`** aplica la fórmula local de la consigna antes de entrenar. Es una conversión fija. **`EscalaEspacial`** adapta StandardScaler en unas pocas líneas: aprende las medias de entrenamiento y divide ambos ejes por el mismo factor. Esa adaptación respeta la geometría exigida por la consigna y queda dentro del pipeline.
 
-**`GridSearchCV`** prueba combinaciones declaradas y selecciona por AP sobre la partición temporal. El pipeline completo se vuelve a ajustar en cada candidato. Se clonan los estimadores al comparar: las métricas y los modelos finales no dependen del estado dejado por el último fold.
+**Las grillas son bucles explícitos**, como buscar_grilla del lab 17: probar parámetros, ajustar en 2017, predecir en 2018, calcular AP y conservar la mejor configuración. No se usa un buscador automático para ocultar esos pasos.
+
+**Relación con clase:** pandas y auditoría de labs 2/2A; pipelines de lab 4; logística de lab 5; métricas de lab 8; AdaBoost de lab 16; SVM y grillas de lab 17; agrupamientos de lab 21. Para jerárquico usamos linkage y fcluster, como en ese lab. Bosque, red, validación temporal y permutación no tienen un lab específico entre los archivos locales revisados, pero son obligatorios en la consigna. Se usan las bibliotecas estándar con una explicación corta, no implementaciones desde cero. La correspondencia detallada está en RELACION_CON_LABS.md.
 
 ## 1. Datos, respuesta y población
 
@@ -77,7 +79,7 @@ Elegimos **baches, tipo 401**, con **{r['focos']['reclamos']} ingresos en 2017�
 
 **Jerárquico Ward:** agrupa favoreciendo compacidad. **Enlace simple:** puede conectar zonas mediante cadenas de puntos, aunque estén muy extendidas. Se comparan con el mismo K para no cambiar dos cosas a la vez.
 
-**DBSCAN:** busca densidad y puede dejar reclamos sin grupo. Primero se graficaron k-distancias de 5, 10 y 20 vecinos. Elegimos mínimo 10 como soporte intermedio y una rodilla de la curva como radio: **eps={num(r['focos']['eps'],0)} m**. La rodilla es una regla aproximada, no una norma de la Intendencia.
+**DBSCAN:** busca densidad y puede dejar reclamos sin grupo. Primero se graficaron k-distancias de 5, 10 y 20 vecinos. Elegimos mínimo 10 y, visualmente, un radio cercano al cambio de pendiente entre 500 y 600 m, antes de agrupar: **eps={num(r['focos']['eps'],0)} m**. Es una elección visual aproximada, como en lab 21, no una norma de la Intendencia. Se quitó la detección automática de rodilla.
 
 {tabla(r['focos']['comparacion'],[('metodo','Método'),('grupos','Grupos'),('sin_grupo','Sin grupo'),('silhouette','Silhouette'),('cobertura','Cobertura')])}
 
@@ -105,7 +107,7 @@ Ajustar centros antes con toda la muestra revela distribución de ubicaciones de
 - **Árbol:** reglas por cortes; fácil de inspeccionar, pero puede sobreajustar.
 - **SVM RBF:** frontera no lineal con distancias; C regula penalización y gamma el alcance del núcleo.
 - **Bosque:** promedia muchos árboles con aleatoriedad para reducir variación; no equivale a un único árbol legible.
-- **Boosting:** añade árboles para corregir errores del conjunto anterior; profundidad y cantidad controlan flexibilidad.
+- **Boosting:** AdaBoost combina árboles de profundidad 1 y da más peso a los ejemplos difíciles, como en lab 16. Se comparan cantidad de estimadores y learning_rate.
 - **Red neuronal:** combina capas no lineales; se limita tamaño y regularización y usa parada temprana interna.
 
 Las grillas son pequeñas, de dos a cuatro valores por parámetro. Cada elegido y sus bordes aparecen en el notebook. Caer en borde reconoce exploración limitada, no certifica un óptimo. La red no usa test para parar. Los tiempos corresponden al equipo de esta ejecución y no son una promesa para cualquier computadora.
@@ -116,7 +118,7 @@ Las grillas son pequeñas, de dos a cuatro valores por parámetro. Cada elegido 
 
 ## 7. Evaluación final y validación mezclada
 
-Con configuración cerrada se entrena en la muestra de ambos años y se evalúa una vez en 2019. SVM mantiene sus 10.000. No cambiamos grillas al ver esta tabla. En prueba, el bosque mejora AUC frente a logística sin ubicación, pero su AP queda ligeramente por debajo. Por eso no se demuestra una mejora uniforme ni se justifica reemplazar automáticamente la alternativa simple y barata: la recomendación de desarrollo es un candidato para evaluar prospectivamente, no una garantía de superioridad.
+Con configuración cerrada se entrena en la muestra de ambos años y se evalúa una vez en 2019. SVM mantiene sus 10.000. No cambiamos grillas al ver esta tabla. En esta ejecución, el bosque cambia AUC en {t["AUC"]-b["AUC"]:+.4f} y AP en {t["AP"]-b["AP"]:+.4f} frente a logística sin ubicación. Se informa la magnitud, sin convertir una mejora pequeña en garantía de superioridad. La alternativa simple y barata sigue siendo una referencia; se requiere evaluación prospectiva antes de reemplazarla.
 
 {tabla(r['final'],[('familia','Familia'),('AUC','AUC 2019'),('AP','AP 2019'),('ajuste_s','Ajuste s'),('prediccion_s','Predicción s')])}
 

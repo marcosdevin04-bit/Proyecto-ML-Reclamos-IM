@@ -76,15 +76,19 @@ En macOS/Linux:
 .venv/bin/python ejecutar_notebook.py
 ```
 
-El notebook extrae el CSV del ZIP si falta y verifica el hash de la fuente. La ejecución verificada tardó unos cinco minutos en el equipo de trabajo; puede variar. La fecha de descarga es el 22 de octubre de 2026. No hace falta volver a descargar el recurso, que se actualiza periódicamente.
+El notebook extrae el CSV del ZIP si falta y verifica el hash de la fuente. El tiempo depende del equipo, el kernel y las grillas; se registra en la ejecución y por familia. La fecha de descarga es el 22 de octubre de 2026. No hace falta volver a descargar el recurso, que se actualiza periódicamente.
 
 Para regenerar la guía, instalar `requirements-documentacion.txt` en el mismo entorno y ejecutar `python scripts/crear_guia.py`. El constructor del notebook reinicia sus salidas: no hace falta usarlo para leer o ejecutar la entrega. Las anotaciones numéricas se generan después de ejecutar con `python scripts/anotar_resultados.py`.
+
+## Correspondencia con los laboratorios
+
+La versión actual usa el estilo de los labs locales: funciones cortas, pasos explícitos, bucles de grillas, AdaBoost y agrupamiento jerárquico con SciPy. [Relación con los labs](RELACION_CON_LABS.md) documenta qué se reutiliza y qué elementos adicionales exige la consigna. El notebook y la guía se reejecutaron y actualizaron tras esta revisión.
 
 ## Estado y lectura de resultados
 
 Notebook completo y ejecutado con las ocho secciones, seis familias y prueba reservada de 2019. Los resultados incluyen casos en que la alternativa más compleja no mejora a la base.
 
-En 2019, el bosque elegido en desarrollo obtiene AUC 0,760 y AP 0,703, frente a AUC 0,746 y AP 0,706 de la logística sin ubicación. Hay mejora de AUC, pero no de AP: no se demuestra superioridad uniforme ni se justifica un reemplazo automático del modelo simple. La validación mezclada del bosque da AUC 0,880, frente a 0,760 en el año posterior.
+En 2019, el bosque elegido en desarrollo obtiene AUC 0.761 y AP 0.710, frente a AUC 0.743 y AP 0.701 de la logística sin ubicación. Se reconoce la magnitud de las diferencias y no se garantiza una mejora futura. La validación mezclada del bosque obtiene AUC 0.875, frente a 0.761 en el año posterior.
 
 Se proponen cuatro focos compactos de baches bajo criterios explícitos de soporte y radio. El grupo extenso de DBSCAN no se recomienda como si fuera un foco compacto; su silhouette negativo y el ruido se discuten en el notebook.
 
