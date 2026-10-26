@@ -19,8 +19,8 @@
       "AP": 0.4026335159892042
     },
     "Logística sin ubicación": {
-      "AUC": 0.7075081320795897,
-      "AP": 0.6261757676535764
+      "AUC": 0.7069844040168207,
+      "AP": 0.6257332084945316
     }
   },
   "coordenadas": [
@@ -28,64 +28,64 @@
       "par": "Unidad",
       "variante": "Grados",
       "familia": "KNN",
-      "AUC": 0.6759595442319941,
-      "AP": 0.58785006653348
+      "AUC": 0.694133724249388,
+      "AP": 0.604767304634443
     },
     {
       "par": "Unidad",
       "variante": "Metros",
       "familia": "KNN",
-      "AUC": 0.5797085042569036,
-      "AP": 0.4546322391178368
+      "AUC": 0.5797928327625499,
+      "AP": 0.4542624068887525
     },
     {
       "par": "Escala",
       "variante": "Metros estandarizados",
       "familia": "KNN",
-      "AUC": 0.7010578079032657,
-      "AP": 0.606338993155818
+      "AUC": 0.7244695987984957,
+      "AP": 0.6392720347818388
     },
     {
       "par": "Escala",
       "variante": "Metros sin escalar",
       "familia": "KNN",
-      "AUC": 0.5797085042569036,
-      "AP": 0.4546322391178368
+      "AUC": 0.5797928327625499,
+      "AP": 0.4542624068887525
     },
     {
       "par": "Unidad",
       "variante": "Grados",
       "familia": "Árbol",
-      "AUC": 0.6501729975411034,
-      "AP": 0.5661340027736548
+      "AUC": 0.650270021557617,
+      "AP": 0.5680595265778221
     },
     {
       "par": "Unidad",
       "variante": "Metros",
       "familia": "Árbol",
-      "AUC": 0.6501729975411034,
-      "AP": 0.5661340027736548
+      "AUC": 0.650270021557617,
+      "AP": 0.5680595265778221
     },
     {
       "par": "Escala",
       "variante": "Metros estandarizados",
       "familia": "Árbol",
-      "AUC": 0.6501729975411034,
-      "AP": 0.5661340027736548
+      "AUC": 0.650270021557617,
+      "AP": 0.5680595265778221
     },
     {
       "par": "Escala",
       "variante": "Metros sin escalar",
       "familia": "Árbol",
-      "AUC": 0.6501729975411034,
-      "AP": 0.5661340027736548
+      "AUC": 0.650270021557617,
+      "AP": 0.5680595265778221
     }
   ],
   "focos": {
     "tipo": "Bache (401)",
     "reclamos": 4626,
     "K": 4,
-    "eps": 542.8580739441434,
+    "eps": 550,
     "min_samples": 10,
     "comparacion": [
       {
@@ -112,19 +112,19 @@
       {
         "metodo": "DBSCAN",
         "grupos": 12,
-        "sin_grupo": 232,
-        "silhouette": -0.006440376193918371,
-        "cobertura": 0.949848681366191
+        "sin_grupo": 228,
+        "silhouette": -0.004917960134222379,
+        "cobertura": 0.9507133592736705
       }
     ],
     "recomendados": [
       {
         "foco": 5,
-        "longitud": -56.14464727108064,
-        "latitud": -34.818495303972746,
-        "reclamos": 225,
-        "radio_p90_m": 2128.6186710584648,
-        "criterio": "Densidad: eps 543 m, min_samples 10"
+        "longitud": -56.144707101029205,
+        "latitud": -34.818437388378165,
+        "reclamos": 224,
+        "radio_p90_m": 2125.59903534716,
+        "criterio": "Densidad: eps 550 m, min_samples 10"
       },
       {
         "foco": 7,
@@ -132,7 +132,7 @@
         "latitud": -34.79772322236253,
         "reclamos": 50,
         "radio_p90_m": 955.737667868954,
-        "criterio": "Densidad: eps 543 m, min_samples 10"
+        "criterio": "Densidad: eps 550 m, min_samples 10"
       },
       {
         "foco": 1,
@@ -140,7 +140,7 @@
         "latitud": -34.78686354912703,
         "reclamos": 44,
         "radio_p90_m": 755.6030472830524,
-        "criterio": "Densidad: eps 543 m, min_samples 10"
+        "criterio": "Densidad: eps 550 m, min_samples 10"
       },
       {
         "foco": 6,
@@ -148,7 +148,7 @@
         "latitud": -34.76635270598151,
         "reclamos": 42,
         "radio_p90_m": 1074.9015099932737,
-        "criterio": "Densidad: eps 543 m, min_samples 10"
+        "criterio": "Densidad: eps 550 m, min_samples 10"
       }
     ]
   },
@@ -157,13 +157,13 @@
     "comparacion": [
       {
         "modelo": "Logística coordenadas",
-        "AUC": 0.7254036192134334,
-        "AP": 0.6481774124213762
+        "AUC": 0.7244379608345297,
+        "AP": 0.6448292765322269
       },
       {
         "modelo": "Logística distancias a 12 centros",
-        "AUC": 0.7432766110978734,
-        "AP": 0.6630050055865417
+        "AUC": 0.7416029242169497,
+        "AP": 0.6619319491588258
       }
     ]
   },
@@ -171,74 +171,74 @@
     {
       "familia": "KNN",
       "n": 50000,
-      "configuracion": "{'modelo__n_neighbors': 51}",
-      "grilla": "{'modelo__n_neighbors': [15, 51, 151]}",
-      "AUC": 0.6938954470310471,
-      "AP": 0.6038072066952402,
-      "ajuste_s": 0.035788899999715795,
-      "prediccion_s": 4.689285600000403,
-      "busqueda_s": 15.721807300000364,
-      "bordes": ""
+      "configuracion": "{'n_neighbors': 15}",
+      "grilla": "[{'n_neighbors': 15}, {'n_neighbors': 51}, {'n_neighbors': 151}]",
+      "AUC": 0.7295359975718063,
+      "AP": 0.6378689684732073,
+      "ajuste_s": 0.09514270001091063,
+      "prediccion_s": 6.746481299982406,
+      "bordes": "n_neighbors",
+      "busqueda_s": 25.548040999972727
     },
     {
       "familia": "Árbol",
       "n": 50000,
-      "configuracion": "{'modelo__max_depth': 12, 'modelo__min_samples_leaf': 60}",
-      "grilla": "{'modelo__max_depth': [6, 12], 'modelo__min_samples_leaf': [20, 60]}",
-      "AUC": 0.6594025331284699,
-      "AP": 0.579035753933728,
-      "ajuste_s": 0.1655404000002818,
-      "prediccion_s": 0.03398430000015651,
-      "busqueda_s": 1.1909171999996033,
-      "bordes": "modelo__max_depth=12; modelo__min_samples_leaf=60"
+      "configuracion": "{'max_depth': 12, 'min_samples_leaf': 60}",
+      "grilla": "[{'max_depth': 6, 'min_samples_leaf': 20}, {'max_depth': 6, 'min_samples_leaf': 60}, {'max_depth': 12, 'min_samples_leaf': 20}, {'max_depth': 12, 'min_samples_leaf': 60}]",
+      "AUC": 0.663037269709273,
+      "AP": 0.5794456718638926,
+      "ajuste_s": 0.4837423000135459,
+      "prediccion_s": 0.10452319995965809,
+      "bordes": "max_depth, min_samples_leaf",
+      "busqueda_s": 1.7785646000411361
     },
     {
       "familia": "SVM RBF",
       "n": 10000,
-      "configuracion": "{'modelo__C': 2.0, 'modelo__gamma': 0.03}",
-      "grilla": "{'modelo__C': [0.5, 2.0], 'modelo__gamma': ['scale', 0.03]}",
-      "AUC": 0.714533912358847,
-      "AP": 0.6193449334639145,
-      "ajuste_s": 0.48657619999994495,
-      "prediccion_s": 0.7355251999997563,
-      "busqueda_s": 7.579632300000412,
-      "bordes": "modelo__C=2.0; modelo__gamma=0.03"
+      "configuracion": "{'C': 2.0, 'gamma': 0.03}",
+      "grilla": "[{'C': 0.5, 'gamma': 'scale'}, {'C': 0.5, 'gamma': 0.03}, {'C': 2.0, 'gamma': 'scale'}, {'C': 2.0, 'gamma': 0.03}]",
+      "AUC": 0.7120198767073795,
+      "AP": 0.6035657132491662,
+      "ajuste_s": 0.7281795000308193,
+      "prediccion_s": 1.3324796999804676,
+      "bordes": "C, gamma",
+      "busqueda_s": 8.742062899982557
     },
     {
       "familia": "Bosque",
       "n": 50000,
-      "configuracion": "{'modelo__max_depth': None, 'modelo__min_samples_leaf': 5}",
-      "grilla": "{'modelo__max_depth': [10, None], 'modelo__min_samples_leaf': [5, 20]}",
-      "AUC": 0.7468546037509964,
-      "AP": 0.6691734592005574,
-      "ajuste_s": 1.223101300000053,
-      "prediccion_s": 0.13384709999991173,
-      "busqueda_s": 7.883990299999823,
-      "bordes": "modelo__max_depth=None; modelo__min_samples_leaf=5"
+      "configuracion": "{'max_depth': None, 'min_samples_leaf': 5}",
+      "grilla": "[{'max_depth': 10, 'min_samples_leaf': 5}, {'max_depth': 10, 'min_samples_leaf': 20}, {'max_depth': None, 'min_samples_leaf': 5}, {'max_depth': None, 'min_samples_leaf': 20}]",
+      "AUC": 0.7549593977260769,
+      "AP": 0.6795087969656912,
+      "ajuste_s": 1.865979199996218,
+      "prediccion_s": 0.22987139999167994,
+      "bordes": "max_depth, min_samples_leaf",
+      "busqueda_s": 6.4448406000155956
     },
     {
       "familia": "Boosting",
       "n": 50000,
-      "configuracion": "{'modelo__max_depth': 3, 'modelo__n_estimators': 100}",
-      "grilla": "{'modelo__n_estimators': [60, 100], 'modelo__max_depth': [2, 3]}",
-      "AUC": 0.7408345781330408,
-      "AP": 0.656900848239679,
-      "ajuste_s": 3.3975381000000198,
-      "prediccion_s": 0.05840230000012525,
-      "busqueda_s": 25.907636700000694,
-      "bordes": "modelo__n_estimators=100; modelo__max_depth=3"
+      "configuracion": "{'n_estimators': 100, 'learning_rate': 1.0}",
+      "grilla": "[{'n_estimators': 50, 'learning_rate': 0.5}, {'n_estimators': 50, 'learning_rate': 1.0}, {'n_estimators': 100, 'learning_rate': 0.5}, {'n_estimators': 100, 'learning_rate': 1.0}]",
+      "AUC": 0.6945295446925366,
+      "AP": 0.6014701268064045,
+      "ajuste_s": 4.953368799993768,
+      "prediccion_s": 0.7304459000006318,
+      "bordes": "n_estimators, learning_rate",
+      "busqueda_s": 17.82557830004953
     },
     {
       "familia": "Red neuronal",
       "n": 50000,
-      "configuracion": "{'modelo__alpha': 0.1, 'modelo__hidden_layer_sizes': (32,)}",
-      "grilla": "{'modelo__hidden_layer_sizes': [(32,), (64,)], 'modelo__alpha': [0.001, 0.1]}",
-      "AUC": 0.7514325938455502,
-      "AP": 0.669021045181172,
-      "ajuste_s": 1.4850366000000577,
-      "prediccion_s": 0.04642679999960819,
-      "busqueda_s": 8.830144999999902,
-      "bordes": "modelo__hidden_layer_sizes=(32,); modelo__alpha=0.1"
+      "configuracion": "{'hidden_layer_sizes': (64,), 'alpha': 0.001}",
+      "grilla": "[{'hidden_layer_sizes': (32,), 'alpha': 0.001}, {'hidden_layer_sizes': (32,), 'alpha': 0.1}, {'hidden_layer_sizes': (64,), 'alpha': 0.001}, {'hidden_layer_sizes': (64,), 'alpha': 0.1}]",
+      "AUC": 0.7546742806081119,
+      "AP": 0.6725816107353791,
+      "ajuste_s": 2.4805905999965034,
+      "prediccion_s": 0.08833699999377131,
+      "bordes": "hidden_layer_sizes, alpha",
+      "busqueda_s": 10.465517899952829
     }
   ],
   "final": [
@@ -246,85 +246,85 @@
       "familia": "Logística sin ubicación",
       "n_entrenamiento": 50000,
       "n_prueba": 133211,
-      "AUC": 0.7456819487373426,
-      "AP": 0.7062970632816798,
-      "ajuste_s": 1.1994068999993033,
-      "prediccion_s": 0.1750064999996539
+      "AUC": 0.7426840475162768,
+      "AP": 0.7009083413926092,
+      "ajuste_s": 1.206581600010395,
+      "prediccion_s": 0.26063060003798455
     },
     {
       "familia": "KNN",
       "n_entrenamiento": 50000,
       "n_prueba": 133211,
-      "AUC": 0.6938769029541718,
-      "AP": 0.629367209619664,
-      "ajuste_s": 0.09933840000030614,
-      "prediccion_s": 51.610779300000104
+      "AUC": 0.7217593695436193,
+      "AP": 0.6298134730296183,
+      "ajuste_s": 0.1738486000103876,
+      "prediccion_s": 71.98962750000646
     },
     {
       "familia": "Árbol",
       "n_entrenamiento": 50000,
       "n_prueba": 133211,
-      "AUC": 0.7259938531836774,
-      "AP": 0.6190123680938359,
-      "ajuste_s": 0.48007050000069285,
-      "prediccion_s": 0.18500489999951242
+      "AUC": 0.7279818881682296,
+      "AP": 0.6107549355268096,
+      "ajuste_s": 0.972159199998714,
+      "prediccion_s": 0.3418414000188932
     },
     {
       "familia": "SVM RBF",
       "n_entrenamiento": 10000,
       "n_prueba": 133211,
-      "AUC": 0.7049260113489602,
-      "AP": 0.6445729700305645,
-      "ajuste_s": 2.842888600000151,
-      "prediccion_s": 47.840247199999794
+      "AUC": 0.7127237808216135,
+      "AP": 0.6556637444000522,
+      "ajuste_s": 4.9536241999594495,
+      "prediccion_s": 72.21356509998441
     },
     {
       "familia": "Bosque",
       "n_entrenamiento": 50000,
       "n_prueba": 133211,
-      "AUC": 0.760168648554892,
-      "AP": 0.7025994185707057,
-      "ajuste_s": 2.755935999999565,
-      "prediccion_s": 0.8318116000000373
+      "AUC": 0.7609082701189681,
+      "AP": 0.7097526847123834,
+      "ajuste_s": 3.9714835000340827,
+      "prediccion_s": 1.0703907000133768
     },
     {
       "familia": "Boosting",
       "n_entrenamiento": 50000,
       "n_prueba": 133211,
-      "AUC": 0.7560367865131677,
-      "AP": 0.7070109688616935,
-      "ajuste_s": 14.008441600000879,
-      "prediccion_s": 0.8665519999995013
+      "AUC": 0.7162003796879137,
+      "AP": 0.6400823427241765,
+      "ajuste_s": 11.23832649999531,
+      "prediccion_s": 1608.4892158000148
     },
     {
       "familia": "Red neuronal",
       "n_entrenamiento": 50000,
       "n_prueba": 133211,
-      "AUC": 0.7233832410560318,
-      "AP": 0.6788574182324805,
-      "ajuste_s": 3.0973634000001766,
-      "prediccion_s": 0.21178709999912826
+      "AUC": 0.7300746373530315,
+      "AP": 0.6822139979431977,
+      "ajuste_s": 12.321388700045645,
+      "prediccion_s": 0.41460070002358407
     }
   ],
   "brechas_bosque": [
     {
       "esquema": "Temporal 2017→2018",
-      "AUC": 0.7468546037509964,
-      "AP": 0.6691734592005574,
-      "brecha_AUC_vs_2019": -0.01331404480389553,
-      "brecha_AP_vs_2019": -0.03342595937014836
+      "AUC": 0.7549593977260769,
+      "AP": 0.6795087969656912,
+      "brecha_AUC_vs_2019": -0.0059488723928912135,
+      "brecha_AP_vs_2019": -0.030243887746692177
     },
     {
       "esquema": "5 folds mezclados",
-      "AUC": 0.8800863715846736,
-      "AP": 0.8115263244904944,
-      "brecha_AUC_vs_2019": 0.11991772302978165,
-      "brecha_AP_vs_2019": 0.10892690591978871
+      "AUC": 0.8754413381916081,
+      "AP": 0.8045449433711525,
+      "brecha_AUC_vs_2019": 0.11453306807263997,
+      "brecha_AP_vs_2019": 0.09479225865876906
     },
     {
       "esquema": "2017–2018 → 2019",
-      "AUC": 0.760168648554892,
-      "AP": 0.7025994185707057,
+      "AUC": 0.7609082701189681,
+      "AP": 0.7097526847123834,
       "brecha_AUC_vs_2019": 0.0,
       "brecha_AP_vs_2019": 0.0
     }
@@ -336,65 +336,53 @@
     "tabla": [
       {
         "variable": "CODIGO_TIPOPROBLEMA",
-        "impureza": 0.2675829415428133,
-        "permutacion_caida_AP": 0.1449820414950807,
-        "permutacion_desvio": 0.003201330959909083
+        "impureza": 0.3077915491746523,
+        "permutacion_caida_AP": 0.15859947019223303,
+        "permutacion_desvio": 0.003261831235369869
+      },
+      {
+        "variable": "x",
+        "impureza": 0.19159932844028077,
+        "permutacion_caida_AP": 0.04398552773368416,
+        "permutacion_desvio": 0.0016547982767310752
       },
       {
         "variable": "CODIGO_GRUPO",
-        "impureza": 0.13298344957786223,
-        "permutacion_caida_AP": 0.06286758832440395,
-        "permutacion_desvio": 0.003733728896075134
-      },
-      {
-        "variable": "LONGITUD",
-        "impureza": 0.20039391986495744,
-        "permutacion_caida_AP": 0.04297685644309066,
-        "permutacion_desvio": 0.002274876218863449
+        "impureza": 0.13259211431969084,
+        "permutacion_caida_AP": 0.04089975400090231,
+        "permutacion_desvio": 0.003167604611188353
       },
       {
         "variable": "CODIGO_AREA",
-        "impureza": 0.06886378872614282,
-        "permutacion_caida_AP": 0.04110047118496325,
-        "permutacion_desvio": 0.00147084869870771
+        "impureza": 0.07926958959129576,
+        "permutacion_caida_AP": 0.03524596143711245,
+        "permutacion_desvio": 0.0019006518743081957
       },
       {
-        "variable": "LATITUD",
-        "impureza": 0.14164097815373985,
-        "permutacion_caida_AP": 0.008989148932069835,
-        "permutacion_desvio": 0.0009562045557763435
+        "variable": "y",
+        "impureza": 0.12919433279701725,
+        "permutacion_caida_AP": 0.009707544429148184,
+        "permutacion_desvio": 0.0012855678729087523
       },
       {
-        "variable": "mes_cos",
-        "impureza": 0.028820213037793276,
-        "permutacion_caida_AP": 0.006597862710702551,
-        "permutacion_desvio": 0.0007672026293452606
+        "variable": "mes_ingreso",
+        "impureza": 0.04783995711191144,
+        "permutacion_caida_AP": 0.004315400984629769,
+        "permutacion_desvio": 0.0015156162575787869
+      },
+      {
+        "variable": "dia_semana",
+        "impureza": 0.0254978433128003,
+        "permutacion_caida_AP": 0.003174721849127127,
+        "permutacion_desvio": 0.0015605718657939003
       },
       {
         "variable": "dia_indice",
-        "impureza": 0.09763319798257959,
+        "impureza": 0.08621528525235142,
         "permutacion_caida_AP": 0.0,
         "permutacion_desvio": 0.0
-      },
-      {
-        "variable": "semana_cos",
-        "impureza": 0.014729593100508991,
-        "permutacion_caida_AP": -0.0010510345167784375,
-        "permutacion_desvio": 0.0006283826304583833
-      },
-      {
-        "variable": "semana_sin",
-        "impureza": 0.018943804537391175,
-        "permutacion_caida_AP": -0.0013916134063175045,
-        "permutacion_desvio": 0.0008087873027851987
-      },
-      {
-        "variable": "mes_sin",
-        "impureza": 0.028408113476211395,
-        "permutacion_caida_AP": -0.002885350510836693,
-        "permutacion_desvio": 0.0006417700066823512
       }
     ],
-    "permutacion_ubicacion_conjunta_AP": 0.04492070089583362
+    "permutacion_ubicacion_conjunta_AP": 0.04493875392245554
   }
 }

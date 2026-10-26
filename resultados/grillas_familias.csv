@@ -1,0 +1,24 @@
+familia,parametros,AUC,AP
+KNN,{'n_neighbors': 15},0.7295359975718063,0.6378689684732073
+KNN,{'n_neighbors': 51},0.7178374910366635,0.6327861946872382
+KNN,{'n_neighbors': 151},0.6866611263902211,0.6092115611398354
+Árbol,"{'max_depth': 6, 'min_samples_leaf': 20}",0.6372365396437002,0.5523878372199021
+Árbol,"{'max_depth': 6, 'min_samples_leaf': 60}",0.6392406817731289,0.555537783735317
+Árbol,"{'max_depth': 12, 'min_samples_leaf': 20}",0.6400927897229604,0.5606013823334258
+Árbol,"{'max_depth': 12, 'min_samples_leaf': 60}",0.663037269709273,0.5794456718638926
+SVM RBF,"{'C': 0.5, 'gamma': 'scale'}",0.6983024619605518,0.59915429048174
+SVM RBF,"{'C': 0.5, 'gamma': 0.03}",0.6958664356350734,0.5973785903728027
+SVM RBF,"{'C': 2.0, 'gamma': 'scale'}",0.6922623358919703,0.5936747157595613
+SVM RBF,"{'C': 2.0, 'gamma': 0.03}",0.7120198767073795,0.6035657132491662
+Bosque,"{'max_depth': 10, 'min_samples_leaf': 5}",0.7028444959551241,0.632986067348175
+Bosque,"{'max_depth': 10, 'min_samples_leaf': 20}",0.6924094951908903,0.6262795808909168
+Bosque,"{'max_depth': None, 'min_samples_leaf': 5}",0.7549593977260769,0.6795087969656912
+Bosque,"{'max_depth': None, 'min_samples_leaf': 20}",0.7376463501782877,0.6629848141208589
+Boosting,"{'n_estimators': 50, 'learning_rate': 0.5}",0.6659776640493613,0.5551435773626291
+Boosting,"{'n_estimators': 50, 'learning_rate': 1.0}",0.6641928532088578,0.5624963075239426
+Boosting,"{'n_estimators': 100, 'learning_rate': 0.5}",0.6848455570940345,0.5627349203193363
+Boosting,"{'n_estimators': 100, 'learning_rate': 1.0}",0.6945295446925366,0.6014701268064045
+Red neuronal,"{'hidden_layer_sizes': (32,), 'alpha': 0.001}",0.753467831633442,0.6720969037588964
+Red neuronal,"{'hidden_layer_sizes': (32,), 'alpha': 0.1}",0.7498463363453258,0.6697824324914619
+Red neuronal,"{'hidden_layer_sizes': (64,), 'alpha': 0.001}",0.7546742806081119,0.6725816107353791
+Red neuronal,"{'hidden_layer_sizes': (64,), 'alpha': 0.1}",0.7456737682823699,0.666468432329546

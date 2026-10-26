@@ -1,6 +1,6 @@
 """Comprueba integridad de fuentes, salidas, estructura y coherencia de resultados."""
 from pathlib import Path
-import hashlib,json,zipfile
+import hashlib,json,zipfile,csv,math
 import nbformat
 root=Path(__file__).resolve().parents[1]
 nb=nbformat.read(root/'entrega_reclamos_im.ipynb',as_version=4)
@@ -20,6 +20,12 @@ r=json.loads((root/'resultados/resumen.json').read_text(encoding='utf-8'))
 assert r['datos']['muestra']==50000
 assert r['datos']['train_2017']+r['datos']['validacion_2018']==50000
 assert len(r['familias_validacion'])==6 and len(r['final'])==7
+with (root/'resultados/grillas_familias.csv').open(encoding='utf-8',newline='') as f:
+    grillas=list(csv.DictReader(f))
+for elegido in r['familias_validacion']:
+    mejor_ap=max(float(fila['AP']) for fila in grillas if fila['familia']==elegido['familia'])
+    assert math.isclose(elegido['AP'],mejor_ap,abs_tol=1e-12),'La selección no coincide con AP de validación'
+assert math.isclose(sum(fila['impureza'] for fila in r['importancias']['tabla']),1.,abs_tol=1e-8)
 assert len({f['n_prueba'] for f in r['final']})==1
 assert r['final'][0]['n_prueba']==r['datos']['prueba']
 for f in r['familias_validacion']+r['final']:
