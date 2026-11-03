@@ -88,7 +88,7 @@ Bordes declarados: la profundidad del árbol (sin límite es el extremo natural)
 
 - **Bosque, tres estimaciones:** validación 2017 → 2018 AUC 0,761, mezclada 0,882 y 2019 0,753. La mezclada sobrestima en 0,13.
 - **Mecanismo de la brecha:** el 85 % de los reclamos de validación mezclada tiene en entrenamiento otro del mismo tipo y del mismo día, y la etiqueta de esos pares acierta el 69 % (contra 63 %). Al usarse, eso no existe.
-- **Recomendado:** logística con 40 zonas. Tiene la mejor AP, empata el AUC del boosting, ajusta en 2 s (el boosting en 44 s) y se explica con coeficientes. La red queda a 0,009 de AP: no alcanza para elegirla.
+- **Recomendado:** logística con 40 zonas. Tiene la mejor AP, empata el AUC del boosting, ajusta en unos segundos (el boosting tarda casi un minuto) y se explica con coeficientes. La red queda a 0,009 de AP: no alcanza para elegirla.
 
 ## 8. Importancias
 
@@ -113,7 +113,7 @@ Bordes declarados: la profundidad del árbol (sin límite es el extremo natural)
 
 **¿Qué pasa si k-medias se ajusta fuera del pipeline?** Los centroides usarían las ubicaciones de validación: la estimación sale optimista.
 
-**¿Por qué recomiendan una logística y no el boosting?** En 2019 tiene mejor AP y el mismo AUC, ajusta 20 veces más rápido y se puede explicar.
+**¿Por qué recomiendan una logística y no el boosting?** En 2019 tiene mejor AP y el mismo AUC, ajusta unas 20 veces más rápido y se puede explicar.
 
 **¿Qué es el cambio de catálogo y por qué importa?** El 26/12/2017 Limpieza cambió sus códigos; en 2018, casi la mitad de la validación tiene tipos casi sin casos en 2017.
 
