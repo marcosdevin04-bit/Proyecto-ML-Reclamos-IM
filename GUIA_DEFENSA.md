@@ -1,205 +1,175 @@
-# Guía para defender el proyecto de reclamos de Montevideo
+# Guía para defender la Entrega 2
 
-Esta guía acompaña al notebook ejecutado. Explica qué se hizo, por qué y qué números lo respaldan. Las cifras de validación son de 2018, con entrenamiento en 2017; las de prueba son de 2019. No son intercambiables. Los cuatro integrantes deben poder explicar cualquier sección y reconocer los límites del trabajo.
+Resume qué hicimos en cada sección, por qué, y con qué números lo sostenemos. Todas las cifras salen de las salidas de `entrega_reclamos_im.ipynb`. En la defensa le pueden pedir a cualquiera de los cuatro que explique cualquier celda: esta guía ayuda, pero no reemplaza leer el código.
+
+Las cifras de validación son de entrenar con 2017 y validar con 2018 sobre la muestra de 50 000. Las de «2019» son la prueba, usada una sola vez.
 
 ## Presentación de un minuto
 
-> Queremos estimar al ingresar un reclamo si su cierre se registra dentro de siete días y encontrar concentraciones de baches. Auditamos los datos, construimos la respuesta y usamos únicamente información conocida al ingreso. Elegimos con 2017–2018 y reservamos 2019. La recomendación entre las seis familias es Bosque: en prueba obtiene AUC 0,761 y AP 0,710, frente a 0,743 y 0,701 de la logística sin ubicación. Analizamos también agrupamientos: una zona que divide la ciudad no equivale a un foco denso. El cierre publicado no garantiza reparación física, y los resultados no son un diagnóstico de la gestión municipal.
+> Usamos el registro abierto de reclamos de la Intendencia, de 2017 a 2019. Antes de modelar encontramos tres cosas que condicionan todo: el catálogo de Limpieza cambió el 26/12/2017, la proporción de reclamos cerrados en una semana sube de 33 % a 43 % en dos años, y el 12 % de los reclamos se cierra administrativamente más de un año después. Por eso validamos en el tiempo: entrenamos con 2017, validamos con 2018 y probamos una sola vez con 2019. Lo que más determina que un reclamo se cierre en una semana es el tipo de problema; la ubicación suma algo. En 2019, el mejor modelo es una regresión logística con distancias a 40 zonas de k-medias: AP 0,720 contra 0,700 sin ubicación, más barata y más explicable que el boosting o la red. Los modelos de árboles eran los mejores en validación pero no en 2019. Para los focos usamos bocas de tormenta obstruidas: DBSCAN encuentra 52 focos y recomendamos los 5 mayores. Nada de esto es un diagnóstico de la gestión de la Intendencia.
 
-## Cómo leer el código
+## Cómo está armado el código
 
-**`flujo(modelo)`** arma dos pasos juntos: preparación y algoritmo. Por ejemplo, primero convierte categorías y coordenadas, y después ajusta el bosque. Se llama pipeline porque aplica los pasos en orden.
-
-**`ColumnTransformer`** reparte columnas: códigos de problema van a one-hot; calendario a escalado; ubicación a proyección y escalado espacial. One-hot convierte categorías en columnas 0/1, sin suponer que un código 400 sea el doble de 200.
-
-**`proyectar`** aplica la fórmula local de la consigna antes de entrenar. Es una conversión fija. **`EscalaEspacial`** adapta StandardScaler en unas pocas líneas: aprende las medias de entrenamiento y divide ambos ejes por el mismo factor. Esa adaptación respeta la geometría exigida por la consigna y queda dentro del pipeline.
-
-**Las grillas son bucles explícitos**, como buscar_grilla del lab 17: probar parámetros, ajustar en 2017, predecir en 2018, calcular AP y conservar la mejor configuración. No se usa un buscador automático para ocultar esos pasos.
-
-**Relación con clase:** pandas y auditoría de labs 2/2A; pipelines de lab 4; logística de lab 5; métricas de lab 8; AdaBoost de lab 16; SVM y grillas de lab 17; agrupamientos de lab 21. Para jerárquico usamos linkage y fcluster, como en ese lab. Bosque, red, validación temporal y permutación no tienen un lab específico entre los archivos locales revisados, pero son obligatorios en la consigna. Se usan las bibliotecas estándar con una explicación corta, no implementaciones desde cero. La correspondencia detallada está en RELACION_CON_LABS.md.
+- **`proyectar(longitud, latitud)`**: la fórmula de la consigna para pasar de grados a metros respecto de un punto fijo (34,87 °S, 56,17 °O).
+- **`flujo(modelo, geo, k_zonas)`**: el `Pipeline` del lab 4. Hace one-hot de área, grupo, tipo, mes y día de la semana; agrega las coordenadas (`geo`) o, si se pide, las distancias a `k_zonas` centroides de k-medias.
+- **`evaluar(modelo, entrenamiento, evaluacion, columnas)`**: ajusta, puntúa y devuelve AUC, AP y los dos tiempos. Si el modelo no da probabilidades (la SVM), usa `decision_function`.
+- **`crear(familia, p)`**: devuelve el estimador de cada familia con los hiperparámetros `p`. La sección 6 recorre cada grilla con `ParameterGrid`, como el lab 14.
+- **`ent`, `val`**: la muestra de 2017 y la de 2018. **`muestra`**: los 50 000. **`prueba`**: los 133 211 reclamos de 2019.
 
 ## 1. Datos, respuesta y población
 
-Leímos **1,709,419 filas**. **395,643** corresponden a ingresos de 2017–2019. Quitamos **14 copias exactas**, excluimos **17,492 abiertos o anulados** y **1 demora imposible/ausente**. No hubo exclusiones geográficas por el rectángulo local. La población final es de **378,136 reclamos**, de los cuales **133,211** son de prueba.
+- **Ingesta:** 1 709 419 reclamos en el archivo; 395 643 en la ventana (130 178, 125 227 y 140 238 por año).
+- **Respuesta:** `resuelto_7d = 1` si entre el ingreso y la fecha del estado Finalizado hay 7 días o menos. Las fechas no tienen hora, así que se cuentan días.
+- **Población:** quitamos 14 copias, 17 492 anulados o abiertos y 1 reclamo con cierre antes del ingreso. Quedan 378 136. Sacar los abiertos sube un poco la prevalencia, y más en 2019 (0,9 % en proceso) que en 2017 (0,2 %).
+- **Defectos clave:**
+  - El cambio de catálogo: «Muebles y electrodomésticos» pasa del código 301 al 1402, «Podas» del 241 al 1381, etc. El 43,8 % de la validación 2018 tiene tipos con menos de 100 casos en 2017.
+  - La prevalencia cambia: 33,2 %, 40,6 % y 42,9 %.
+  - Los cierres tardíos: la mediana de la demora es 13 días, el percentil 90 es 533; el 23/6/2021 se cerraron 1 565 reclamos de la ventana el mismo día.
+  - La descripción de campos dice UTM y el archivo trae grados.
+- **Entradas:** área, grupo y tipo (códigos), mes y día de la semana, y ubicación. Afuera: estado y fecha del estado (no existen al ingresar), nombres (redundantes) y el número de reclamo.
+- **Validación:** 2017 → 2018. Reproduce el uso: entrenar con el pasado y aplicar al año siguiente. La validación mezclada pone reclamos del mismo día de los dos lados (sección 7).
 
-**La etiqueta:** calculamos días entre ingreso y fecha de entrada al estado actual, solo si ese estado es Finalizado. Positivo significa demora no negativa y menor o igual a siete días: exactamente siete cuenta como positivo. El negativo es un finalizado que demoró más de siete días.
+## 2. Línea base
 
-**Por qué no usar todos los estados:** la fecha de un reclamo En Proceso es la de entrada a ese estado, no la de resolución. Anulado tampoco significa necesariamente no resuelto. Asignarles una etiqueta automática inventaría un resultado. Excluirlos hace observable la etiqueta, pero introduce selección: el modelo representa finalizados con fechas válidas, no todos los ingresos.
+- Prevalencia: AUC 0,500, AP 0,406. **La AP de un puntaje constante es la prevalencia del conjunto evaluado**, no cero: cualquier corte toma una porción al azar y su precisión es la proporción de positivos.
+- Logística sin ubicación: AUC 0,718, AP 0,635.
+- La fecha como tendencia (años desde 2017) no aporta (AP 0,634) y siempre cae fuera del rango de entrenamiento: por eso entra como mes y día de la semana.
 
-**Límite de la palabra resuelto:** el catálogo dice que Finalizado incluye cierres por no corresponder y otros motivos. Por eso nuestra respuesta es un indicador de cierre administrativo semanal, no prueba de reparación física. También puede haber reaperturas que la foto actual no reconstruye.
+## 3. Coordenadas
 
-**Contraste con metadatos:** la descripción menciona COORD_X/COORD_Y UTM, pero el archivo trae LATITUD/LONGITUD en grados. Se usa lo observado y se documenta la discrepancia. No se inventa que el archivo ya esté en metros.
+| Variante | k vecinos (AUC / AP) | Árbol |
+|---|---|---|
+| Grados | 0,721 / 0,641 | 0,642 / 0,567 |
+| Metros sin escalar | 0,563 / 0,447 | igual |
+| Metros estandarizados | 0,728 / 0,645 | igual |
 
-**Entradas:** códigos de área, grupo y tipo como categorías; calendario derivado de la fecha de ingreso; latitud y longitud. No entran identificador, estado actual ni fecha de cambio de estado. Los dos últimos se conocen después y producirían fuga. Los nombres de área/grupo/tipo se descartan porque duplican sus códigos.
+- **El árbol no cambia:** corta un eje por vez y el orden de los valores no cambia.
+- **En k vecinos manda la escala frente a las indicadoras.** En metros (desvío 4 600) la distancia física tapa al tipo de problema y la AP cae casi a la prevalencia. En grados (desvío 0,05) la ubicación casi no cuenta.
+- La estandarización divide x e y por el **mismo** factor fijo (5 km): así no se deforma la ciudad y no se aprende nada de los datos.
 
-**Validación:** entrenamos en 2017 y validamos en 2018. La alternativa aleatoria mezcla pasado y futuro relativo, y puede compartir episodios y tipos vigentes. El uso previsto recibe nuevos reclamos, por eso elegimos la frontera temporal. Es una sola partición anual, no cinco folds ni un intervalo de confianza. La muestra de familias tiene 50.000 casos proporcionalmente por año; SVM usa 10.000 de esos mismos casos.
+## 4. Focos
 
-**Advertencia temporal concreta:** conocemos las etiquetas desde una foto posterior. Algunos cierres de reclamos de 2017 ocurrieron después de 2018. El ejercicio evalúa transferencia entre años de ingreso; para simular estrictamente lo disponible en una fecha habría que reconstruir historial y cortar también las etiquetas de entrenamiento. Este límite se declara y no se usa esa fecha como entrada.
+- **Tipo:** boca de tormenta obstruida (2 984 reclamos en 1 976 puntos). Bache no servía: DBSCAN unía 3 677 baches en un grupo de 9 km.
+- **k-medias:** curva irregular de 0,347 a 0,454 (máximo en K = 8). No hay un número natural de zonas.
+- **ε:** la mediana de la distancia al 10.º vecino, 270 m. El codo de la curva (600–700 m) une todo el casco urbano: separa ciudad de periferia, no focos de fondo.
+- **Resultados:** k-medias y Ward reparten la ciudad en 8 zonas; enlace simple encadena (un grupo de 2 968); DBSCAN encuentra 52 focos y deja 1 065 reclamos como ruido.
+- **Silhouette:** elige k-medias (0,454 contra 0,407 de DBSCAN sin ruido), que no encuentra focos. Premia la compacidad, no la concentración.
+- **Focos recomendados:** los 5 grupos de DBSCAN con 70 reclamos o más: 770 reclamos en total, radios de 0,6 a 1,1 km. El quinto tiene 74 reclamos en solo 29 puntos: son pocas bocas reclamadas muchas veces.
 
-## 2. Líneas base y métricas
+## 5. Zonas como atributo
 
-Una línea base es una referencia simple que el modelo tiene que superar. La trivial asigna la misma probabilidad a todos, la prevalencia del entrenamiento. La otra es logística con tipo y calendario, sin ubicación.
+- Distancias a los centroides de k-medias, **dentro** del `ColumnTransformer`.
+- Grilla K ∈ {5, 10, 20, 40, 80, 160}. La AP sube cada vez menos; criterio: el menor K a menos de 0,005 de la mejor AP, que es **K = 40** (AP 0,667 contra 0,653 de las coordenadas crudas).
+- **Por qué ayuda a un modelo lineal:** con x e y, la logística solo puede representar un efecto en línea recta hacia algún lado. Con 40 distancias puede dar un efecto distinto a cada parte de la ciudad.
+- **Afuera del pipeline,** los centroides se calcularían con las ubicaciones de validación. **Con la respuesta** (tasa de cierre por zona), cada reclamo ayudaría a definir su propia entrada.
 
-| Modelo | AUC en 2018 | AP en 2018 |
-| --- | --- | --- |
-| Prevalencia | 0,500 | 0,403 |
-| Logística sin ubicación | 0,707 | 0,626 |
+## 6. Seis familias
 
-**AUC:** capacidad de ordenar positivos por encima de negativos. Un AUC de 0,70 no significa 70% de aciertos. Con todos los scores iguales es 0,5.
+| Familia | Elegida | AP validación |
+|---|---|---|
+| k vecinos | k = 51 | 0,641 |
+| Árbol | sin límite de profundidad, hoja 120 | 0,657 |
+| SVM RBF (10 000) | C = 0,5, γ = 0,1 | 0,614 |
+| Bosque | 70 % de variables, hoja 5 | 0,707 |
+| Boosting (AdaBoost) | profundidad 8, 600 etapas | 0,715 |
+| Red neuronal | una capa de 32, α = 0,01 | 0,698 |
 
-**AP:** average precision resume precisión y recall al recorrer umbrales. Su referencia trivial es la proporción de positivos del conjunto evaluado, no cero. AP cambia también cuando cambia la prevalencia: no se compara un año con otro ignorando ese cambio.
+Bordes declarados: la profundidad del árbol (sin límite es el extremo natural), el 70 % del bosque (meseta: 0,705 con 40 %) y la profundidad 8 del boosting (la AP sigue subiendo).
 
-No elegimos umbral por costos: esta entrega pide scores o probabilidades y métricas de ordenamiento. La SVM usa función de decisión; no se presenta su score como una probabilidad calibrada.
+## 7. 2019
 
-## 3. Coordenadas: unidades y escalado
+| Modelo | AUC | AP |
+|---|---|---|
+| Logística sin ubicación | 0,741 | 0,700 |
+| Logística con 40 zonas | 0,767 | **0,720** |
+| Boosting | **0,767** | 0,683 |
+| Red neuronal | 0,749 | 0,711 |
+| Bosque | 0,753 | 0,651 |
 
-Cinco kilómetros y cinco mil metros son el mismo lugar, pero cambian la magnitud numérica de las entradas. KNN busca reclamos cercanos en el espacio de atributos; sin escalado una coordenada en miles puede dominar a las categorías 0/1. El árbol pregunta si una coordenada supera un umbral y puede convertir ese umbral sin cambiar las filas separadas.
+- **Bosque, tres estimaciones:** validación 2017 → 2018 AUC 0,761, mezclada 0,882 y 2019 0,753. La mezclada sobrestima en 0,13.
+- **Mecanismo de la brecha:** el 85 % de los reclamos de validación mezclada tiene en entrenamiento otro del mismo tipo y del mismo día, y la etiqueta de esos pares acierta el 69 % (contra 63 %). Al usarse, eso no existe.
+- **Recomendado:** logística con 40 zonas. Tiene la mejor AP, empata el AUC del boosting, ajusta en unos segundos (el boosting tarda casi un minuto) y se explica con coeficientes. La red queda a 0,009 de AP: no alcanza para elegirla.
 
-Usamos la proyección local permitida: x = R por diferencia de longitud en radianes por coseno de la latitud de referencia; y = R por diferencia de latitud. R vale 6.371.000 m y la referencia fija es longitud -56,17°, latitud -34,87°. No se aprende del test.
+## 8. Importancias
 
-| Contraste | Variante | Familia | AUC | AP |
-| --- | --- | --- | --- | --- |
-| Unidad | Grados | KNN | 0,694 | 0,605 |
-| Unidad | Metros | KNN | 0,580 | 0,454 |
-| Escala | Metros estandarizados | KNN | 0,724 | 0,639 |
-| Escala | Metros sin escalar | KNN | 0,580 | 0,454 |
-| Unidad | Grados | Árbol | 0,650 | 0,568 |
-| Unidad | Metros | Árbol | 0,650 | 0,568 |
-| Escala | Metros estandarizados | Árbol | 0,650 | 0,568 |
-| Escala | Metros sin escalar | Árbol | 0,650 | 0,568 |
+- **Modelo:** el boosting, el mejor basado en árboles por AP de validación.
+- **Lectura:** la impureza infla las variables con muchos cortes (coordenada y 0,216, mes 0,132), que en 2019 casi no aportan (permutación 0,013 y 0,007). **La impureza habla del ajuste; la permutación sobre 2019, del problema.**
+- **El tipo de problema domina** (permutación 0,151):
+  - Se cierran en una semana casi siempre: conexión obstruida (94 %) y animales muertos (95 %).
+  - Casi nunca: reposición de vereda (0,4 %) y traslado de contenedor (1,5 %).
+- **Ubicación:** sin ella, el boosting pierde 0,048 de AUC; en la logística, las zonas suman 0,020 de AP.
 
-En cada contraste solo cambia unidad o escalado espacial. Los modelos, parámetros, resto de preparación y partición permanecen iguales. Un factor común para ambos ejes conserva proporciones físicas. Se interpretan las diferencias observadas, no se exige que todos los modelos mejoren.
+## Los dos puntos débiles y cómo defenderlos
 
-## 4. Agrupamientos y focos
+Son las dos cosas que un docente estricto nos puede marcar. Las dos tienen defensa, pero hay que conocer los números y no negar lo que es cierto.
 
-Elegimos **baches, tipo 401**, con **4626 ingresos en 2017–2018**. Tiene ubicación interpretable y supera los 2.000 pedidos. Aquí también contamos abiertos/anulados porque buscamos concentración de reportes, no solo de finalizados. No se usan ubicaciones de 2019.
+Tabla de apoyo (validación = entrenar con 2017 y evaluar en 2018; 2019 = entrenar con 2017–2018 y evaluar en 2019):
 
-**K-medias:** fuerza K grupos y asigna todos los puntos. Probamos una curva de K entre 2 y 12; el máximo medido fue **K=4**. La curva y su forma importan: el mejor valor de una grilla no prueba que existan exactamente esos barrios naturales.
+| Modelo | AUC validación | AUC 2019 | AP validación | AP 2019 | AP sobre la prevalencia, validación | AP sobre la prevalencia, 2019 |
+|---|---|---|---|---|---|---|
+| Logística sin ubicación | 0,718 | 0,741 | 0,635 | 0,700 | +0,229 | +0,271 |
+| Logística con 40 zonas | 0,749 | 0,767 | 0,667 | 0,720 | +0,261 | +0,291 |
+| Bosque | 0,761 | 0,753 | 0,707 | 0,651 | +0,301 | +0,222 |
+| Boosting | 0,785 | 0,767 | 0,715 | 0,683 | +0,309 | +0,254 |
+| Red neuronal | 0,762 | 0,749 | 0,698 | 0,711 | +0,292 | +0,282 |
 
-**Jerárquico Ward:** agrupa favoreciendo compacidad. **Enlace simple:** puede conectar zonas mediante cadenas de puntos, aunque estén muy extendidas. Se comparan con el mismo K para no cambiar dos cosas a la vez.
+La prevalencia es 0,406 en 2018 y 0,429 en 2019. Por eso las AP de los dos años no se comparan directo: hay que mirar cuánto suben sobre la prevalencia (las dos últimas columnas).
 
-**DBSCAN:** busca densidad y puede dejar reclamos sin grupo. Primero se graficaron k-distancias de 5, 10 y 20 vecinos. Elegimos mínimo 10 y, visualmente, un radio cercano al cambio de pendiente entre 500 y 600 m, antes de agrupar: **eps=550 m**. Es una elección visual aproximada, como en lab 21, no una norma de la Intendencia. Se quitó la detección automática de rodilla.
+### Punto 1: «El modelo recomendado lo eligieron mirando 2019»
 
-| Método | Grupos | Sin grupo | Silhouette | Cobertura |
-| --- | --- | --- | --- | --- |
-| K-medias | 4 | 0 | 0,466 | 1,000 |
-| Jerárquico Ward | 4 | 0 | 0,416 | 1,000 |
-| Jerárquico simple | 4 | 0 | 0,325 | 1,000 |
-| DBSCAN | 12 | 228 | -0,005 | 0,951 |
+**La crítica.** El paso 3 de la consigna dice que toda elección, incluida la familia, se hace con 2017–2018. En validación el boosting le ganaba a la logística con zonas por 0,048 de AP, que no son milésimas. La logística sale recomendada por su resultado en 2019.
 
-**Silhouette** evalúa cohesión y separación geométrica; alto no significa automáticamente utilidad para intervención. En DBSCAN se calcula sin ruido y se informa la cobertura. No se trata a todos los puntos dispersos como un solo grupo. El valor negativo observado obliga a reconocer superposición o encadenamiento y no a declarar éxito por el nombre del método.
+**Cómo lo defendemos, en este orden:**
 
-**Qué recomendamos:** de los grupos DBSCAN, revisar los que tengan al menos 30 reportes y radio p90 no mayor a 2,5 km. Es un criterio operativo propuesto que excluye grupos demasiado extensos para intervención conjunta. p90 es el radio desde su centro aproximado que contiene al 90% de los puntos. El personal municipal debería confirmar la conveniencia y si hay reclamos reiterados del mismo bache.
+1. **Todo lo que configura un modelo se eligió con 2017–2018.** La preparación, el K = 40 de las zonas (sección 5) y los hiperparámetros de las seis familias (sección 6) salieron de la validación. 2019 no cambió ningún hiperparámetro ni ninguna columna: cada modelo se evaluó una sola vez, tal como estaba. Eso es lo que protege el paso 3.
+2. **La sección 7 pide elegir después de evaluar en 2019.** Su consigna dice «evaluarla una sola vez sobre 2019» y después «elegir un modelo para recomendar, pesando desempeño, costo de cómputo y lo que el modelo permite explicar». La recomendación es la respuesta a esa pregunta, no un ajuste del modelo.
+3. **Dos de los tres criterios no dependen de 2019.** Que la logística es mucho más barata de ajustar (en validación el boosting ya tardaba unos 20 s en ajustar; en la sección 7, 2,7 s contra 49 s) y que se explica con sus coeficientes, mientras que el boosting no, se sabía antes de mirar 2019. Lo único que aportó 2019 es el desempeño, y ahí la logística no es peor: empata el AUC (0,767 los dos) y tiene más AP.
+4. **Lo que mostró 2019 es que la validación sobrestimaba a los árboles, y eso es un resultado.** Las dos logísticas suben de validación a 2019; el bosque y el boosting bajan en AUC y en AP sobre la prevalencia (el boosting pasa de +0,309 a +0,254), y la red baja un poco. Las importancias de la sección 8 dicen por qué: la impureza les da mucho peso a la coordenada y y al mes, que en 2019 casi no aportan. Recomendar el boosting sabiendo eso sería ignorar la evidencia.
 
-| Foco | Longitud aprox. | Latitud aprox. | Reportes | Radio p90 en m |
-| --- | --- | --- | --- | --- |
-| 5 | -56,145 | -34,818 | 224 | 2125,599 |
-| 7 | -56,251 | -34,798 | 50 | 955,738 |
-| 1 | -56,134 | -34,787 | 44 | 755,603 |
-| 6 | -56,219 | -34,766 | 42 | 1074,902 |
+**Lo que hay que reconocer si insisten:** que la AP de 0,720 de la logística es un poco optimista, porque es la mejor de ocho modelos comparados sobre el mismo 2019. Por eso el texto no dice que sea «la mejor», sino que no es peor, cuesta mucho menos y se puede explicar. Y si solo pudiéramos usar la validación, habríamos elegido el boosting: su AP de 2019 (0,683, por debajo de la logística sin ubicación) muestra que esa elección habría sido peor.
 
-Los centros son coordenadas, no nombres de barrios verificados. Contamos reportes, no defectos físicos únicos ni tasas por habitante.
+**Frase corta para la defensa:** «Con 2019 no ajustamos nada: lo usamos una sola vez para la comparación que pide la sección 7. Costo y explicabilidad ya favorecían a la logística antes de mirar 2019, y 2019 mostró que la ventaja del boosting en validación no se sostenía.»
 
-## 5. Zonas como atributos
+### Punto 2: «En la sección 1 dicen que la validación es más exigente que el uso real, pero en la 7 es optimista»
 
-Una logística con x e y aprende un efecto espacial lineal en log-odds. Distancias a varios centros permiten describir un patrón más flexible sin cambiar el clasificador. Usamos KMeans dentro del pipeline: aprende centros solo en entrenamiento.
+**La crítica.** La sección 1 dice que, por el cambio de catálogo, 2017 → 2018 es más exigente que el uso real. En la sección 7, para el bosque, esa validación resultó optimista: AP 0,707 en validación contra 0,651 en 2019.
 
-Elegimos **K=12** entre 4, 8 y 12 por AP temporal. Este K se elige para predecir todos los tipos; no se copia el de focos de baches.
+**Cómo lo defendemos:** las dos cosas pasan a la vez, porque hay dos efectos opuestos, y la tabla de arriba los separa.
 
-| Representación | AUC | AP |
-| --- | --- | --- |
-| Logística coordenadas | 0,724 | 0,645 |
-| Logística distancias a 12 centros | 0,742 | 0,662 |
+1. **El efecto del catálogo hace la validación más exigente, y se ve en los modelos simples.** La validación entrena solo con 2017, cuando el catálogo nuevo casi no existía: el 43,8 % de la validación tiene tipos con menos de 100 casos. Para 2019 se entrena con 2017–2018, que ya incluye el catálogo nuevo, y esa proporción baja a 8,1 %. Por eso las dos logísticas, que dependen sobre todo del tipo de problema, mejoran de validación a 2019: el AUC sube de 0,718 a 0,741 y de 0,749 a 0,767, y la AP sobre la prevalencia también sube.
+2. **El efecto del sobreajuste hace la validación optimista, y se ve en los árboles (y un poco en la red).** El bosque (sin límite real de profundidad, 70 % de las variables por corte) y el boosting (árboles de profundidad 8) aprenden combinaciones de lugar, tipo y mes propias de 2017–2018. En 2019 esas combinaciones valen menos, y eso pesa más que la ventaja del catálogo: bajan en AUC y en AP. La sección 8 lo respalda: la coordenada y y el mes tienen mucha importancia por impureza (0,216 y 0,132) y casi nada por permutación sobre 2019 (0,013 y 0,007).
 
-Ajustar centros antes con toda la muestra revela distribución de ubicaciones de validación, aunque no use etiquetas. Usar tasas de cierre por zona revelaría además respuesta si no se construye fuera de muestra dentro de cada entrenamiento. Nuestra representación no usa la respuesta para agrupar. Si fueran etiquetas de zona, habría que codificarlas como categorías, no números ordenados.
+**Lo que hay que reconocer:** la frase de la sección 1 era cierta para los modelos que dependen del tipo, pero quedó dicha en general, y para los árboles no se cumplió. La forma correcta de decirlo es: «La validación es más exigente en cobertura del catálogo, pero no protege contra el sobreajuste de los modelos complejos».
 
-## 6. Seis familias y elección
-
-- **KNN:** estima por semejanza con vecinos; es sensible a escala y puede costar al predecir muchos casos.
-- **Árbol:** reglas por cortes; fácil de inspeccionar, pero puede sobreajustar.
-- **SVM RBF:** frontera no lineal con distancias; C regula penalización y gamma el alcance del núcleo.
-- **Bosque:** promedia muchos árboles con aleatoriedad para reducir variación; no equivale a un único árbol legible.
-- **Boosting:** AdaBoost combina árboles de profundidad 1 y da más peso a los ejemplos difíciles, como en lab 16. Se comparan cantidad de estimadores y learning_rate.
-- **Red neuronal:** combina capas no lineales; se limita tamaño y regularización y usa parada temprana interna.
-
-Las grillas son pequeñas, de dos a cuatro valores por parámetro. Cada elegido y sus bordes aparecen en el notebook. Caer en borde reconoce exploración limitada, no certifica un óptimo. La red no usa test para parar. Los tiempos corresponden al equipo de esta ejecución y no son una promesa para cualquier computadora.
-
-| Familia | AUC 2018 | AP 2018 | Ajuste s | Predicción s |
-| --- | --- | --- | --- | --- |
-| KNN | 0,730 | 0,638 | 0,095 | 6,746 |
-| Árbol | 0,663 | 0,579 | 0,484 | 0,105 |
-| SVM RBF | 0,712 | 0,604 | 0,728 | 1,332 |
-| Bosque | 0,755 | 0,680 | 1,866 | 0,230 |
-| Boosting | 0,695 | 0,601 | 4,953 | 0,730 |
-| Red neuronal | 0,755 | 0,673 | 2,481 | 0,088 |
-
-**Criterio fijado antes del test:** entre familias a menos de 0,01 AP del máximo de desarrollo, preferimos menor tiempo de ajuste más predicción. Esa tolerancia es operativa, no una prueba de equivalencia. Resultó **Bosque**, con AP 0,680. La capacidad explicativa se considera en la recomendación: un ensamble ofrece importancias, pero no una explicación causal ni una regla breve para cada caso.
-
-## 7. Evaluación final y validación mezclada
-
-Con configuración cerrada se entrena en la muestra de ambos años y se evalúa una vez en 2019. SVM mantiene sus 10.000. No cambiamos grillas al ver esta tabla. En esta ejecución, el bosque cambia AUC en +0.0182 y AP en +0.0088 frente a logística sin ubicación. Se informa la magnitud, sin convertir una mejora pequeña en garantía de superioridad. La alternativa simple y barata sigue siendo una referencia; se requiere evaluación prospectiva antes de reemplazarla.
-
-| Familia | AUC 2019 | AP 2019 | Ajuste s | Predicción s |
-| --- | --- | --- | --- | --- |
-| Logística sin ubicación | 0,743 | 0,701 | 1,207 | 0,261 |
-| KNN | 0,722 | 0,630 | 0,174 | 71,990 |
-| Árbol | 0,728 | 0,611 | 0,972 | 0,342 |
-| SVM RBF | 0,713 | 0,656 | 4,954 | 72,214 |
-| Bosque | 0,761 | 0,710 | 3,971 | 1,070 |
-| Boosting | 0,716 | 0,640 | 11,238 | 1608,489 |
-| Red neuronal | 0,730 | 0,682 | 12,321 | 0,415 |
-
-| Esquema bosque | AUC | AP | Diferencia AUC vs. 2019 |
-| --- | --- | --- | --- |
-| Temporal 2017→2018 | 0,755 | 0,680 | -0,006 |
-| 5 folds mezclados | 0,875 | 0,805 | 0,115 |
-| 2017–2018 → 2019 | 0,761 | 0,710 | 0,000 |
-
-Con mezcla aleatoria hay reclamos de ambos años en cada lado, posiblemente del mismo entorno, episodio o catálogo. La temporal exige cruzar una frontera de año. También cambia la cantidad de entrenamiento por fold: mezclada usa 80%; temporal solo 2017. Por eso la brecha observada no se atribuye exclusivamente a fuga; influyen tamaño, prevalencia y cambio temporal. La tabla informa el signo real, no el que esperábamos.
-
-## 8. Importancias y límites
-
-El mejor modelo de árboles por AP de desarrollo fue **Bosque**. Impureza describe cómo se ajustaron sus cortes; permutación mide cuánto cae AP al romper una entrada sobre una submuestra fija de **10000 casos de 2019**, con cinco repeticiones. No se ajusta otra decisión con esas importancias.
-
-| Variable | Impureza | Caída AP al permutar | Desvío |
-| --- | --- | --- | --- |
-| CODIGO_TIPOPROBLEMA | 0,308 | 0,159 | 0,003 |
-| x | 0,192 | 0,044 | 0,002 |
-| CODIGO_GRUPO | 0,133 | 0,041 | 0,003 |
-| CODIGO_AREA | 0,079 | 0,035 | 0,002 |
-| y | 0,129 | 0,010 | 0,001 |
-| mes_ingreso | 0,048 | 0,004 | 0,002 |
-| dia_semana | 0,025 | 0,003 | 0,002 |
-| dia_indice | 0,086 | 0,000 | 0,000 |
-
-Impureza favorece variables con más oportunidades de corte. Permutación habla de utilidad predictiva fuera de muestra, pero correlaciones pueden ocultar aportes o crear combinaciones irreales. Área, grupo y tipo están relacionados. Para ubicación también permutamos latitud/longitud como bloque: caída AP **0,0449**. No se suman automáticamente las dos importancias individuales. Ninguna importancia demuestra causalidad.
-
-**Límites a reconocer:** cierre administrativo no equivale a reparación; exclusión de abiertos/anulados; foto retrospectiva con etiquetas tardías; cambio de tipos y prevalencia; una sola frontera temporal; posibles reportes del mismo episodio; proyección y rectángulo aproximados; grillas pequeñas; datos prepandemia que no garantizan el comportamiento de 2026. Ninguna conclusión constituye un diagnóstico sobre la gestión de la Intendencia.
+**Frase corta para la defensa:** «Son dos efectos opuestos. El catálogo hace la validación más dura para todos, y por eso la logística mejora en 2019. Los árboles además se sobreajustan a 2017–2018, y en ellos ese efecto gana. La tabla de validación contra 2019 muestra los dos.»
 
 ## Preguntas para practicar
 
-**¿Por qué no usamos la fecha del estado actual?** Porque al ingresar aún no se conoce; revela información posterior y construye el objetivo.
+**¿Por qué recomiendan la logística si en validación ganaba el boosting?** Ver «Punto 1» arriba: 2019 no ajustó nada, costo y explicabilidad ya favorecían a la logística, y 2019 mostró que la ventaja del boosting no se sostenía.
 
-**¿Por qué la AP base no es cero?** Porque incluso sin distinguir casos hay una proporción positiva en el conjunto; con scores constantes AP coincide con esa prevalencia.
+**¿La validación temporal era pesimista u optimista?** Las dos cosas, según el modelo: pesimista para la logística (catálogo nuevo), optimista para los árboles (sobreajuste). Ver «Punto 2».
 
-**¿Por qué no elegimos por accuracy?** La consigna pide AUC y AP; accuracy depende de un umbral y puede ocultar el desempeño sobre una clase.
+**¿Por qué la AP trivial es 0,406 y no 0?** Porque es la prevalencia de 2018: un puntaje constante ordena al azar.
 
-**¿Por qué separar 2019 y no un 20% aleatorio?** Porque queremos medir sobre ingresos posteriores. Mezclar años puede hacer más fácil la validación sin representar ese uso.
+**¿Por qué no validación cruzada mezclada?** Porque pone reclamos del mismo día en entrenamiento y validación; infla el AUC del bosque de 0,753 a 0,882.
 
-**¿Por qué KMeans dentro del pipeline?** Los centros aprenden de los datos. Si ven validación antes, revelan su distribución espacial y contaminan el experimento.
+**¿Por qué cambiaron de bache a boca de tormenta?** Porque los baches están repartidos de forma pareja: DBSCAN no encuentra focos, encuentra la ciudad.
 
-**¿Por qué un silhouette alto no basta?** Porque grupos geométricamente separados pueden ser solo zonas impuestas; una intervención necesita concentración, tamaño y ubicación útiles.
+**¿Por qué ε = 270 m y no el codo?** El codo une todo el casco urbano. La mediana marca «más denso que lo típico», que es lo que es un foco.
 
-**¿Por qué no usamos costos como en OSE?** Esta consigna no pide una política de umbral; pide estimar resolución semanal y comparar probabilidades o scores.
+**¿Por qué el silhouette no elige DBSCAN?** Porque mide compacidad y separación, no concentración; una partición en zonas compactas lo maximiza aunque no haya focos.
 
-**¿Podemos decir que un barrio causa demora?** No. Las entradas y su importancia muestran asociación predictiva dentro de la población analizada.
+**¿Qué pasa si k-medias se ajusta fuera del pipeline?** Los centroides usarían las ubicaciones de validación: la estimación sale optimista.
 
-**¿Qué revisar antes de defender?** Rehacer la etiqueta a mano con dos fechas, explicar los conteos de población, leer la tabla de validación contra prueba y poder describir qué aprende cada paso del pipeline.
+**¿Por qué recomiendan una logística y no el boosting?** En 2019 tiene mejor AP y el mismo AUC, ajusta unas 20 veces más rápido y se puede explicar.
 
-## Archivos y reproducción
+**¿Qué es el cambio de catálogo y por qué importa?** El 26/12/2017 Limpieza cambió sus códigos; en 2018, casi la mitad de la validación tiene tipos casi sin casos en 2017.
 
-El notebook contiene el código, las salidas, gráficos y respuestas. Los CSV y el resumen JSON preservan las cifras de esta guía. El ZIP oficial está versionado y se verifica su SHA-256; el CSV se extrae automáticamente al ejecutar. La fecha de descarga queda en el manifiesto y se declara en la configuración.
+**¿Qué mide la respuesta?** El cierre administrativo en el sistema, no la reparación: hay cierres en bloque años después.
 
-Para ejecutar desde un kernel nuevo: instalar requirements.txt y correr `python ejecutar_notebook.py`. Para regenerar esta guía: instalar requirements-documentacion.txt y correr `python scripts/crear_guia.py`. No hay que regenerar el notebook desde el constructor para leer resultados: hacerlo reinicia sus salidas.
+## Antes de entregar
 
-Fuentes: consigna de la cátedra incluida en el repo; catálogo oficial y descripción de campos conservados con los datos. Los parámetros y resultados exactos están en el notebook, no dependen de esta explicación resumida.
+1. Que los cuatro puedan explicar `flujo`, `evaluar` y el esquema 2017 → 2018.
+2. Repasar por qué la AP trivial es la prevalencia y por qué el silhouette no elige los focos.
+3. Abrir el notebook y comprobar que estas cifras aparecen en las salidas.
+4. Entregar por Moodle el notebook ejecutado.

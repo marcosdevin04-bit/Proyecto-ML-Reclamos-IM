@@ -2,7 +2,7 @@
 
 `reclamos.zip` es la descarga oficial conservada para reproducir esta entrega. `metadata.txt` es la descripción de campos publicada. El manifiesto `fuentes.json` registra URLs, tamaño, SHA-256 y fecha de descarga.
 
-El CSV descomprimido supera el límite habitual de GitHub y no se versiona. El notebook lo extrae del ZIP si no existe y verifica el hash del ZIP antes de leerlo. No hace falta descargar los datos otra vez para ejecutar.
+El CSV descomprimido supera el límite habitual de GitHub y no se versiona. El notebook lo extrae del ZIP si no existe. No hace falta descargar los datos otra vez para ejecutar; para comprobar que el ZIP es la misma versión, comparar su SHA-256 con el de `fuentes.json`.
 
 La descarga fue realizada el 22 de octubre de 2026. El archivo público se sobrescribe periódicamente: una nueva descarga puede diferir de la versión analizada. `descargar_datos.py` permite recuperar las fuentes oficiales, pero no debe sobrescribirse el manifiesto de esta versión para comparar resultados históricos.
 

@@ -1,34 +1,22 @@
-# Relación del proyecto con los laboratorios
+# Relación del notebook con los laboratorios del curso
 
-Se revisaron los diez notebooks `lab*.ipynb` de `C:\ml_env`, sin usar como referencia las soluciones de Ingeniería de Datos ni los paquetes instalados.
+El código está escrito con el estilo de los labs: `print` con f-strings, constantes en mayúscula, funciones cortas con docstring y bucles explícitos. Esta tabla dice de dónde sale cada parte.
 
-| Parte del proyecto | Referencia revisada | Forma usada |
+| Parte del notebook | Laboratorio o clase | Qué se usa |
 |---|---|---|
-| Lectura y DataFrames | Lab 2A | `read_csv`, filtros, fechas, `groupby`, conteos y tablas |
-| Auditoría | Lab 2 | Tipos, faltantes, duplicados, distribuciones y hallazgos |
-| Preparación | Lab 4, celdas 63–70 | `Pipeline`, `ColumnTransformer`, imputación, one-hot y `StandardScaler` |
-| Logística | Lab 5 | `LogisticRegression` y probabilidades |
-| AUC y AP | Lab 8 | Función de métricas y comparación de resultados |
-| Boosting | Lab 16, celdas 14 y 23 | `AdaBoostClassifier` con árboles de profundidad 1 |
-| SVM y grillas | Lab 17, celda 25 | `SVC` y bucle explícito de parámetros |
-| k-medias y DBSCAN | Lab 21, celdas 8, 15 y 51 | `KMeans`, silhouette, `NearestNeighbors`, k-distancias y radio visual |
-| Jerárquico | Lab 21, celdas 36 y 39 | `linkage` y `fcluster`, Ward y enlace simple |
+| Lectura, filtros y auditoría (sección 1) | Labs 2 y 2A | `read_csv`, fechas, `value_counts`, `crosstab`, filas repetidas |
+| Preparación (`flujo`) | Lab 4 | `Pipeline` + `ColumnTransformer` con `OneHotEncoder` |
+| Logística y AUC/AP (secciones 2, 5 y 7) | Labs 5, 6 y 8 | `LogisticRegression`, `roc_auc_score`, `average_precision_score`; la AP de un puntaje constante es la prevalencia |
+| k vecinos y escalado (sección 3) | Lab 10 | El efecto de la escala de cada columna sobre la distancia |
+| Árbol de decisión | Lab 12 | `DecisionTreeClassifier`, profundidad y hoja mínima |
+| Bosque e importancias (secciones 6 y 8) | Lab 14 | `RandomForestClassifier`, `ParameterGrid`, `feature_importances_` sumadas por variable original, `permutation_importance` y el desempeño al quitar una variable |
+| Boosting (sección 6) | Lab 16 | `AdaBoostClassifier` sobre árboles chicos; profundidad y número de etapas |
+| SVM y medición de tiempos (sección 6) | Lab 17 | `SVC` con núcleo RBF, `C` y `gamma`, `time.perf_counter` |
+| Red neuronal (sección 6) | Clase 18 | `MLPClassifier` con una capa oculta, `alpha` (L2) y `early_stopping` |
+| Focos (sección 4) | Lab 21 | `KMeans` y la curva del silhouette, `linkage` y `fcluster` (Ward y enlace simple), `NearestNeighbors` para el gráfico de k-distancias, `DBSCAN` |
+| Zonas dentro del pipeline (sección 5) | Labs 4 y 21 | `KMeans` como paso del `ColumnTransformer`: devuelve la distancia a cada centroide |
 
-## Simplificaciones
+## Lo que pide la consigna y no está en un lab
 
-- Proyección en una función corta con la fórmula de la consigna, sin clase propia para proyección, ajuste, transformación y nombres de columnas.
-- Mes y día de semana como categorías, sin senos/cosenos de calendario.
-- Grillas con bucles de ajuste, predicción y AP, como en lab 17. Se muestran todas las configuraciones.
-- Radio de DBSCAN elegido desde el gráfico antes de agrupar, sin detección automática de rodilla.
-- AdaBoost de lab 16 en lugar de GradientBoostingClassifier.
-- Sentencias separadas por pasos y nuevas interpretaciones generadas desde las salidas.
-
-## Lo adicional que exige la consigna
-
-Bosque aleatorio, red neuronal, validación temporal e importancia por permutación son obligatorios. No encontré un laboratorio específico entre los diez archivos revisados. Se conservan sus APIs estándar y grillas pequeñas: quitarlos dejaría incompleta la entrega.
-
-`EscalaEspacial` adapta mínimamente `StandardScaler`: aprende medias y varianzas de entrenamiento y usa el mismo divisor en ambos ejes. Cumple la indicación de no deformar la métrica espacial. La proyección es fija y se calcula antes; el divisor aprendido permanece dentro del pipeline.
-
-Los scripts de ejecución, verificación y PDF son herramientas de reproducción y documentación. El código de aprendizaje está en el notebook.
-
-Se mantienen las ocho secciones, las fuentes, la población, la muestra común de 50.000, SVM con 10.000 y la prueba de 2019. La revisión se decide por correspondencia con clase, sin elegir cambios para mejorar 2019.
+- **Validación temporal.** La consigna avisa que se dicta después. El notebook la arma a mano: entrenar con los reclamos de 2017 y validar con los de 2018, y probar una sola vez sobre 2019.
+- **La proyección a metros.** Es la fórmula de la consigna, en la función `proyectar`. Para comparar escalas, las dos coordenadas se dividen por el mismo factor fijo (5 km), como pide la guía de la sección 3, sin clases propias.
