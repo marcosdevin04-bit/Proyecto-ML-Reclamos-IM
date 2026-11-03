@@ -99,7 +99,55 @@ Bordes declarados: la profundidad del árbol (sin límite es el extremo natural)
   - Casi nunca: reposición de vereda (0,4 %) y traslado de contenedor (1,5 %).
 - **Ubicación:** sin ella, el boosting pierde 0,048 de AUC; en la logística, las zonas suman 0,020 de AP.
 
+## Los dos puntos débiles y cómo defenderlos
+
+Son las dos cosas que un docente estricto nos puede marcar. Las dos tienen defensa, pero hay que conocer los números y no negar lo que es cierto.
+
+Tabla de apoyo (validación = entrenar con 2017 y evaluar en 2018; 2019 = entrenar con 2017–2018 y evaluar en 2019):
+
+| Modelo | AUC validación | AUC 2019 | AP validación | AP 2019 | AP sobre la prevalencia, validación | AP sobre la prevalencia, 2019 |
+|---|---|---|---|---|---|---|
+| Logística sin ubicación | 0,718 | 0,741 | 0,635 | 0,700 | +0,229 | +0,271 |
+| Logística con 40 zonas | 0,749 | 0,767 | 0,667 | 0,720 | +0,261 | +0,291 |
+| Bosque | 0,761 | 0,753 | 0,707 | 0,651 | +0,301 | +0,222 |
+| Boosting | 0,785 | 0,767 | 0,715 | 0,683 | +0,309 | +0,254 |
+| Red neuronal | 0,762 | 0,749 | 0,698 | 0,711 | +0,292 | +0,282 |
+
+La prevalencia es 0,406 en 2018 y 0,429 en 2019. Por eso las AP de los dos años no se comparan directo: hay que mirar cuánto suben sobre la prevalencia (las dos últimas columnas).
+
+### Punto 1: «El modelo recomendado lo eligieron mirando 2019»
+
+**La crítica.** El paso 3 de la consigna dice que toda elección, incluida la familia, se hace con 2017–2018. En validación el boosting le ganaba a la logística con zonas por 0,048 de AP, que no son milésimas. La logística sale recomendada por su resultado en 2019.
+
+**Cómo lo defendemos, en este orden:**
+
+1. **Todo lo que configura un modelo se eligió con 2017–2018.** La preparación, el K = 40 de las zonas (sección 5) y los hiperparámetros de las seis familias (sección 6) salieron de la validación. 2019 no cambió ningún hiperparámetro ni ninguna columna: cada modelo se evaluó una sola vez, tal como estaba. Eso es lo que protege el paso 3.
+2. **La sección 7 pide elegir después de evaluar en 2019.** Su consigna dice «evaluarla una sola vez sobre 2019» y después «elegir un modelo para recomendar, pesando desempeño, costo de cómputo y lo que el modelo permite explicar». La recomendación es la respuesta a esa pregunta, no un ajuste del modelo.
+3. **Dos de los tres criterios no dependen de 2019.** Que la logística es mucho más barata de ajustar (en validación el boosting ya tardaba unos 20 s en ajustar; en la sección 7, 2,7 s contra 49 s) y que se explica con sus coeficientes, mientras que el boosting no, se sabía antes de mirar 2019. Lo único que aportó 2019 es el desempeño, y ahí la logística no es peor: empata el AUC (0,767 los dos) y tiene más AP.
+4. **Lo que mostró 2019 es que la validación sobrestimaba a los árboles, y eso es un resultado.** Las dos logísticas suben de validación a 2019; el bosque y el boosting bajan en AUC y en AP sobre la prevalencia (el boosting pasa de +0,309 a +0,254), y la red baja un poco. Las importancias de la sección 8 dicen por qué: la impureza les da mucho peso a la coordenada y y al mes, que en 2019 casi no aportan. Recomendar el boosting sabiendo eso sería ignorar la evidencia.
+
+**Lo que hay que reconocer si insisten:** que la AP de 0,720 de la logística es un poco optimista, porque es la mejor de ocho modelos comparados sobre el mismo 2019. Por eso el texto no dice que sea «la mejor», sino que no es peor, cuesta mucho menos y se puede explicar. Y si solo pudiéramos usar la validación, habríamos elegido el boosting: su AP de 2019 (0,683, por debajo de la logística sin ubicación) muestra que esa elección habría sido peor.
+
+**Frase corta para la defensa:** «Con 2019 no ajustamos nada: lo usamos una sola vez para la comparación que pide la sección 7. Costo y explicabilidad ya favorecían a la logística antes de mirar 2019, y 2019 mostró que la ventaja del boosting en validación no se sostenía.»
+
+### Punto 2: «En la sección 1 dicen que la validación es más exigente que el uso real, pero en la 7 es optimista»
+
+**La crítica.** La sección 1 dice que, por el cambio de catálogo, 2017 → 2018 es más exigente que el uso real. En la sección 7, para el bosque, esa validación resultó optimista: AP 0,707 en validación contra 0,651 en 2019.
+
+**Cómo lo defendemos:** las dos cosas pasan a la vez, porque hay dos efectos opuestos, y la tabla de arriba los separa.
+
+1. **El efecto del catálogo hace la validación más exigente, y se ve en los modelos simples.** La validación entrena solo con 2017, cuando el catálogo nuevo casi no existía: el 43,8 % de la validación tiene tipos con menos de 100 casos. Para 2019 se entrena con 2017–2018, que ya incluye el catálogo nuevo, y esa proporción baja a 8,1 %. Por eso las dos logísticas, que dependen sobre todo del tipo de problema, mejoran de validación a 2019: el AUC sube de 0,718 a 0,741 y de 0,749 a 0,767, y la AP sobre la prevalencia también sube.
+2. **El efecto del sobreajuste hace la validación optimista, y se ve en los árboles (y un poco en la red).** El bosque (sin límite real de profundidad, 70 % de las variables por corte) y el boosting (árboles de profundidad 8) aprenden combinaciones de lugar, tipo y mes propias de 2017–2018. En 2019 esas combinaciones valen menos, y eso pesa más que la ventaja del catálogo: bajan en AUC y en AP. La sección 8 lo respalda: la coordenada y y el mes tienen mucha importancia por impureza (0,216 y 0,132) y casi nada por permutación sobre 2019 (0,013 y 0,007).
+
+**Lo que hay que reconocer:** la frase de la sección 1 era cierta para los modelos que dependen del tipo, pero quedó dicha en general, y para los árboles no se cumplió. La forma correcta de decirlo es: «La validación es más exigente en cobertura del catálogo, pero no protege contra el sobreajuste de los modelos complejos».
+
+**Frase corta para la defensa:** «Son dos efectos opuestos. El catálogo hace la validación más dura para todos, y por eso la logística mejora en 2019. Los árboles además se sobreajustan a 2017–2018, y en ellos ese efecto gana. La tabla de validación contra 2019 muestra los dos.»
+
 ## Preguntas para practicar
+
+**¿Por qué recomiendan la logística si en validación ganaba el boosting?** Ver «Punto 1» arriba: 2019 no ajustó nada, costo y explicabilidad ya favorecían a la logística, y 2019 mostró que la ventaja del boosting no se sostenía.
+
+**¿La validación temporal era pesimista u optimista?** Las dos cosas, según el modelo: pesimista para la logística (catálogo nuevo), optimista para los árboles (sobreajuste). Ver «Punto 2».
 
 **¿Por qué la AP trivial es 0,406 y no 0?** Porque es la prevalencia de 2018: un puntaje constante ordena al azar.
 
