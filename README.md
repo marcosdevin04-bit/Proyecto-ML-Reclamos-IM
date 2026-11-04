@@ -10,6 +10,7 @@ Entrega 2 de Machine Learning (UCU, Ingeniería en Inteligencia Artificial y Cie
 - [`entrega_reclamos_im.ipynb`](entrega_reclamos_im.ipynb): el notebook de la entrega, armado sobre la plantilla oficial y ejecutado de punta a punta.
 - [`entrega_reclamos_im.pdf`](entrega_reclamos_im.pdf) y [`entrega_reclamos_im_template.ipynb`](entrega_reclamos_im_template.ipynb): la consigna y la plantilla de la cátedra, sin cambios.
 - [`GUIA_DEFENSA.md`](GUIA_DEFENSA.md): decisiones, resultados y preguntas para preparar la defensa oral.
+- [Guía de defensa en PDF](GUIA_DEFENSA.pdf): la misma guía, lista para descargar, estudiar o imprimir.
 - [`RELACION_CON_LABS.md`](RELACION_CON_LABS.md): qué parte del notebook sale de qué laboratorio del curso.
 - `data/`: el ZIP oficial descargado el 22/10/2026, la descripción de campos publicada y `fuentes.json` con las URL y el SHA-256.
 - `ejecutar_notebook.py`: ejecuta el notebook completo desde un kernel nuevo.
